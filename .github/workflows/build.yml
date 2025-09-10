@@ -17,18 +17,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # 修复：跨平台初始化构建号（Windows/Linux 通用）
     - name: Initialize build number
       run: |
-        echo 0 > build_number.txt
-      shell: bash
-      # 使用文件系统命令检查文件是否存在，而非exists()函数
-      if: runner.os == 'Linux' && ! -f 'build_number.txt'
+        if [ ! -f "build_number.txt" ]; then
+          echo 0 > build_number.txt
+        fi
+      shell: bash  # GitHub Actions 中 Windows 环境也支持 bash shell
 
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.25.x'
 
+    # 配置 CMake（创建 build 目录并执行 cmake）
     - name: Configure CMake
       run: |
         mkdir -p build
@@ -36,15 +38,16 @@ jobs:
         cmake ..
       shell: bash
 
+    # 构建项目（Release 模式）
     - name: Build
       run: |
         cd build
         cmake --build . --config Release
       shell: bash
 
+    # 运行程序并输出版本（适配 Windows 和 Linux 可执行文件路径）
     - name: Run and display version
       run: |
         cd build
         ${{ matrix.os == 'windows-latest' && '.\Release\hello_world.exe' || './hello_world' }}
       shell: bash
-    
