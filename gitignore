@@ -6,7 +6,7 @@ build/
 *.log
 
 # 生成的版本头文件(在build目录中生成)
-/build/version.h
+#/build/version.h
 
 # 可执行文件
 hello_world
