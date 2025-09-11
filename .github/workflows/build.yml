@@ -2,9 +2,9 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build:
@@ -15,40 +15,32 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # 跨平台初始化构建号
-    - name: Initialize build number
-      run: |
-        if [ ! -f "build_number.txt" ]; then
-          echo 0 > build_number.txt
-        fi
-      shell: bash
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.25.x'
 
-    - name: Set up CMake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
+      # 配置 CMake
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+        shell: bash
 
-    # 配置 CMake
-    - name: Configure CMake
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-      shell: bash
+      # 构建
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
+        shell: bash
 
-    # 构建项目
-    - name: Build
-      run: |
-        cd build
-        cmake --build . --config Release
-      shell: bash
-
-    # 修复：Windows 路径分隔符（bash 中用 / 而非 \），并优化命令拼接
-    - name: Run and display version
-      run: |
-        cd build
-        EXEC_PATH="${{ matrix.os == 'windows-latest' && './Release/hello_world.exe' || './hello_world' }}"
-        $EXEC_PATH
-      shell: bash
+      # 运行并显示版本号
+      - name: Run and display version
+        run: |
+          cd build
+          EXEC_PATH="${{ matrix.os == 'windows-latest' && './Release/hello_world.exe' || './hello_world' }}"
+          $EXEC_PATH
+        shell: bash
